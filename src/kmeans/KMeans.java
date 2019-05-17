@@ -23,10 +23,11 @@ public class KMeans {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
-        BufferedReader centroid = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\levig\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrup_centroides_Q1.csv")));
-        BufferedReader agrupamento = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\levig\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrupamento_Q1.csv")));
+        BufferedReader centroid = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\1721057\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrup_centroides_Q1.csv")));
+        BufferedReader agrupamento = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\1721057\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrupamento_Q1.csv")));
         String linha = null;
         Double[][] centroidCSV = new Double[12][5];
+//        Double[][] centroidCentralizado;
         Double[][] agrupamentoCSV = new Double[1000][5];
         String[] dadosCentroidCSV;
         String[] dadosAgrupamentoCSV;
@@ -57,7 +58,23 @@ public class KMeans {
         for (int i = 0; i < 1000; i++) {
             novoAgrup[i][4] = classeAgrup[i];
         } 
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 5; j++) {
+                System.out.println(centroidCSV[i][j]);
+            }            
+            System.out.println("__________________________");
+        }
         centralizarCentroids(novoAgrup, centroidCSV, k_nums);
+//        classificarAgrup(agrupamentoCSV, centroidCSV, k_nums);
+//        centralizarCentroids(novoAgrup, centroidCSV, k_nums);
+
+        for (int i = 0; i < 12; i++) {
+            for (int j = 0; j < 5; j++) {
+                System.out.println(centroidCSV[i][j]);
+            }            
+            System.out.println("__________________________");
+        }
+        
 //        for(int i = 0; i < 1000; i++){
 ////            System.out.println("Distância c1 " + dist[i][0]);
 ////            System.out.println("Distância c1 " + dist[i][1]);
@@ -67,7 +84,8 @@ public class KMeans {
 //            System.out.println("Argup novo " + novoAgrup[i][4]);
 //            System.out.println("--------------------");
 //        }
-        
+        //guarda 1000 distancias
+        //centroid estabilizar que calcula as distancias
     }
     public static Double[] classificarAgrup(Double[][] agrup, Double[][] centroid, int clusters) {
         Double[] novoAgrup = new Double[1000];
@@ -112,12 +130,12 @@ public class KMeans {
         Arrays.fill(qtde, 0);
         Arrays.fill(soma, 0.0);
         int n = 0;
-        for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
-                System.out.println(centroid[i][j]);
-            }            
-            System.out.println("__________________________");
-        }
+//        for (int i = 0; i < 12; i++) {
+//            for (int j = 0; j < 5; j++) {
+//                System.out.println(centroid[i][j]);
+//            }            
+//            System.out.println("__________________________");
+//        }
         while (n < k) {
             for (int i = 0; i < 1000; i++) {
                 if ((double) (n+1) == agrupamento[i][4]) {
@@ -141,17 +159,17 @@ public class KMeans {
                     soma[l] += agrupamento[m][l];
                 }
             }
-            for (int j = 1, o = 0; j < k+1; j++, o++) {  
+            for (int j = 1, o = 0; j < 5; j++, o++) {  
                 centroid[i][j] = soma[o]/qtde[i];
             }
         }
-        for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
-                System.out.println(centroid[i][j]);
-            }
-            System.out.println("__________________________");
-        }
-        return agrupamento;
+//        for (int i = 0; i < 12; i++) {
+//            for (int j = 0; j < 5; j++) {
+//                System.out.println(centroid[i][j]);
+//            }
+//            System.out.println("__________________________");
+//        }
+        return centroid;
     }
     public static String menorArray(Double[] array) {
         Double menor = array[0];
