@@ -10,6 +10,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.RefineryUtilities;
 
 
 /**
@@ -25,7 +28,7 @@ public class KMeans {
     public static void main(String[] args) throws IOException {
         BufferedReader centroid = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\levig\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrup_centroides_Q1.csv")));
         BufferedReader agrupamento = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\levig\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrupamento_Q1.csv")));
-        String linha = null;
+        String linha;
         Double[][] centroidCSV = new Double[12][5];
         Double[][] centroidCentralizado;
         Double[][] agrupamentoCSV = new Double[1000][5];
@@ -36,6 +39,9 @@ public class KMeans {
         int ic = 0;
         int ia = 0;
         int k_nums = 2;
+        Double[] menorDist = new Double[1000];        
+        XYSeries varianciaXY = new XYSeries("Variância");
+        
         while ((linha = centroid.readLine()) != null) {
             dadosCentroidCSV = linha.split(",");
             centroidCSV[ic][0] = Double.parseDouble(dadosCentroidCSV[0]);
@@ -54,44 +60,40 @@ public class KMeans {
             ia++;
         }
         novoAgrup = agrupamentoCSV;
-        classeAgrup = classificarAgrup(agrupamentoCSV, centroidCSV, k_nums);
+        classeAgrup = classificarAgrup(agrupamentoCSV, centroidCSV, 3, menorDist);
         for (int i = 0; i < 1000; i++) {
             novoAgrup[i][4] = classeAgrup[i];
         }        
-        centroidCentralizado = centralizarCentroids(novoAgrup, centroidCSV, k_nums);
-//        for (int i = 0; i < 12; i++) {
-//            for (int j = 0; j < 5; j++) {
-//                System.out.println(centroidCSV[i][j]);
-//            }            
-//            System.out.println("__________________________");
-//        }
-//        int f = 0;
-////        while(f < 6) {
+        centroidCentralizado = centralizarCentroids(novoAgrup, centroidCSV, 3);
+        int f = 0;
+        while(k_nums < 12) {
             
             
-            classeAgrup = classificarAgrup(novoAgrup, centroidCentralizado, k_nums);
+            classeAgrup = classificarAgrup(novoAgrup, centroidCentralizado, 3, menorDist);
             for (int i = 0; i < 1000; i++) {
                 novoAgrup[i][4] = classeAgrup[i];
             }
-            centralizarCentroids(novoAgrup, centroidCentralizado, k_nums);
+            centralizarCentroids(novoAgrup, centroidCentralizado, 3);
+            varianciaXY.add(k_nums,variancia(menorDist)/k_nums);            
+//            System.out.println("Soma " + variancia(menorDist)/k_nums);
 
-            for (int i = 0; i < k_nums; i++) {
-                for (int j = 0; j < 5; j++) {
-                    System.out.println(centroidCentralizado[i][j]);
-                }            
-                System.out.println("__________________________");
-            }
-//            k_nums++;
-//        f++;
-//        }
-//        classificarAgrup(agrupamentoCSV, centroidCSV, k_nums);
-//        centralizarCentroids(novoAgrup, centroidCSV, k_nums);
-
-        
-        //guarda 1000 distancias
-        //centroid estabilizar que calcula as distancias
+            k_nums++;
+        }
+        k_nums = 4;
+        for (int i = 0; i < k_nums; i++) {
+            for (int j = 0; j < 5; j++) {
+                System.out.println(centroidCentralizado[i][j]);
+            }            
+            System.out.println("__________________________");
+        }
+        XYSeriesCollection dataset = new XYSeriesCollection();
+        dataset.addSeries(varianciaXY);
+        LineChart_AWT chart = new LineChart_AWT("Gráfico", "", dataset);
+        chart.pack( );          
+        RefineryUtilities.centerFrameOnScreen( chart );          
+        chart.setVisible( true );
     }
-    public static Double[] classificarAgrup(Double[][] agrup, Double[][] centroid, int clusters) {
+    public static Double[] classificarAgrup(Double[][] agrup, Double[][] centroid, int clusters, Double[] menorDist) {
         Double[] classeAgrup = new Double[1000];
         Double[][] dist = new Double[1000][clusters];
         int k = 0;
@@ -103,16 +105,8 @@ public class KMeans {
         }
         for (int i = 0; i < 1000; i++) {
             classeAgrup[i] =  1.0 + Double.parseDouble(menorArray(dist[i]));
+            menorDist[i] = menorDistancia(dist[i]);
         }
-//        for(int i = 0; i < 1000; i++){
-////            System.out.println("Distância c1 " + dist[i][0]);
-////            System.out.println("Distância c1 " + dist[i][1]);
-////            System.out.println("Distância c1 " + dist[i][2]);
-////            System.out.println("Distância c1 " + dist[i][3]);
-////            System.out.println("Distância c1 " + dist[i][4]);
-//            System.out.println("Argup novo " + novoAgrup[i]);
-//            System.out.println("--------------------");
-//        }
         return classeAgrup;
     }
     public static double distanciaAB(Double[] a, Double[] b) {
@@ -126,10 +120,10 @@ public class KMeans {
     public static Double[][] centralizarCentroids(Double[][] agrupamento, Double[][] centroid, int k) {
         Integer[][] pos = new Integer[k][1000];
         Double[][] soma = new Double[k][4];
-        Integer[] qtde = new Integer[k];
         Double[][] novoAgrup = agrupamento;
         Double[] classeAgrup = new Double[1000];
         Double[][] novoCentroid = centroid;
+        Integer[] qtde = new Integer[k];
         Arrays.fill(qtde, 0);
         for (int i = 0; i < k; i++) {
             Arrays.fill(soma[i], 0.0);
@@ -149,7 +143,6 @@ public class KMeans {
             qtde[n]++;
             n = 0;
         }
-        
         while (n < k) {
             for (int i = 0; i < 1000; i++) {
                 if (pos[n][m] == i) {
@@ -168,12 +161,6 @@ public class KMeans {
                 novoCentroid[i][j] = soma[i][j-1]/qtde[i];
             }
         }
-//        for (int i = 0; i < 12; i++) {
-//            for (int j = 0; j < 5; j++) {
-//                System.out.println(centroid[i][j]);
-//            }
-//            System.out.println("__________________________");
-//        }
         return novoCentroid;
     }
     public static String menorArray(Double[] array) {
@@ -186,6 +173,23 @@ public class KMeans {
             }
         }
         return indMenor;
+    }
+    public static Double menorDistancia(Double[] array) {
+        Double menor = array[0];
+        for (int i = 0; i < array.length; i++) {
+            if(menor >= array[i]) {
+                menor = array[i];
+            }
+        }
+        return menor;
+    }
+    public static Double variancia(Double[] dist) {
+        Double soma = 0.0;
+
+        for (int i = 0; i < 1000; i++) {
+            soma += dist[i];
+        }
+        return soma;
     }
 }
     
