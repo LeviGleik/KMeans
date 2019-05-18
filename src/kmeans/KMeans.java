@@ -23,11 +23,11 @@ public class KMeans {
      * @throws java.io.IOException
      */
     public static void main(String[] args) throws IOException {
-        BufferedReader centroid = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\1721057\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrup_centroides_Q1.csv")));
-        BufferedReader agrupamento = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\1721057\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrupamento_Q1.csv")));
+        BufferedReader centroid = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\levig\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrup_centroides_Q1.csv")));
+        BufferedReader agrupamento = new BufferedReader(new InputStreamReader(new FileInputStream("C:\\Users\\levig\\Documents\\NetBeansProjects\\KMeans\\src\\kmeans\\agrupamento_Q1.csv")));
         String linha = null;
         Double[][] centroidCSV = new Double[12][5];
-//        Double[][] centroidCentralizado;
+        Double[][] centroidCentralizado;
         Double[][] agrupamentoCSV = new Double[1000][5];
         String[] dadosCentroidCSV;
         String[] dadosAgrupamentoCSV;
@@ -35,7 +35,7 @@ public class KMeans {
         Double[] classeAgrup;
         int ic = 0;
         int ia = 0;
-        int k_nums = 4;
+        int k_nums = 2;
         while ((linha = centroid.readLine()) != null) {
             dadosCentroidCSV = linha.split(",");
             centroidCSV[ic][0] = Double.parseDouble(dadosCentroidCSV[0]);
@@ -57,53 +57,53 @@ public class KMeans {
         classeAgrup = classificarAgrup(agrupamentoCSV, centroidCSV, k_nums);
         for (int i = 0; i < 1000; i++) {
             novoAgrup[i][4] = classeAgrup[i];
-        } 
-        for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
-                System.out.println(centroidCSV[i][j]);
-            }            
-            System.out.println("__________________________");
-        }
-        centralizarCentroids(novoAgrup, centroidCSV, k_nums);
+        }        
+        centroidCentralizado = centralizarCentroids(novoAgrup, centroidCSV, k_nums);
+//        for (int i = 0; i < 12; i++) {
+//            for (int j = 0; j < 5; j++) {
+//                System.out.println(centroidCSV[i][j]);
+//            }            
+//            System.out.println("__________________________");
+//        }
+//        int f = 0;
+////        while(f < 6) {
+            
+            
+            classeAgrup = classificarAgrup(novoAgrup, centroidCentralizado, k_nums);
+            for (int i = 0; i < 1000; i++) {
+                novoAgrup[i][4] = classeAgrup[i];
+            }
+            centralizarCentroids(novoAgrup, centroidCentralizado, k_nums);
+
+            for (int i = 0; i < k_nums; i++) {
+                for (int j = 0; j < 5; j++) {
+                    System.out.println(centroidCentralizado[i][j]);
+                }            
+                System.out.println("__________________________");
+            }
+//            k_nums++;
+//        f++;
+//        }
 //        classificarAgrup(agrupamentoCSV, centroidCSV, k_nums);
 //        centralizarCentroids(novoAgrup, centroidCSV, k_nums);
 
-        for (int i = 0; i < 12; i++) {
-            for (int j = 0; j < 5; j++) {
-                System.out.println(centroidCSV[i][j]);
-            }            
-            System.out.println("__________________________");
-        }
         
-//        for(int i = 0; i < 1000; i++){
-////            System.out.println("Distância c1 " + dist[i][0]);
-////            System.out.println("Distância c1 " + dist[i][1]);
-////            System.out.println("Distância c1 " + dist[i][2]);
-////            System.out.println("Distância c1 " + dist[i][3]);
-////            System.out.println("Distância c1 " + dist[i][4]);
-//            System.out.println("Argup novo " + novoAgrup[i][4]);
-//            System.out.println("--------------------");
-//        }
         //guarda 1000 distancias
         //centroid estabilizar que calcula as distancias
     }
     public static Double[] classificarAgrup(Double[][] agrup, Double[][] centroid, int clusters) {
-        Double[] novoAgrup = new Double[1000];
+        Double[] classeAgrup = new Double[1000];
         Double[][] dist = new Double[1000][clusters];
-        Double menor = 0.0;
-        int indMenor = 0;
-        int n = 0;
-        for (int i = 0, k = 0; i < 1000; i++, k = 0) {
-            while (k < (clusters)) {
+        int k = 0;
+        while (k < (clusters)) {
+            for (int i = 0, n = 0; i < 1000; i++) {
                 dist[i][k] = distanciaAB(agrup[i], centroid[k]);
-                k++;
-            }
+            }               
+            k++;
         }
-        menor = dist[0][0];
         for (int i = 0; i < 1000; i++) {
-            novoAgrup[i] =  1.0 + Double.parseDouble(menorArray(dist[i]));
+            classeAgrup[i] =  1.0 + Double.parseDouble(menorArray(dist[i]));
         }
-//        System.out.println(dist[0].length);
 //        for(int i = 0; i < 1000; i++){
 ////            System.out.println("Distância c1 " + dist[i][0]);
 ////            System.out.println("Distância c1 " + dist[i][1]);
@@ -113,7 +113,7 @@ public class KMeans {
 //            System.out.println("Argup novo " + novoAgrup[i]);
 //            System.out.println("--------------------");
 //        }
-        return novoAgrup;
+        return classeAgrup;
     }
     public static double distanciaAB(Double[] a, Double[] b) {
         double result = 0;
@@ -124,43 +124,48 @@ public class KMeans {
         return result;
     }
     public static Double[][] centralizarCentroids(Double[][] agrupamento, Double[][] centroid, int k) {
-        Double[] aux;
-        Double[] soma = new Double[4];
+        Integer[][] pos = new Integer[k][1000];
+        Double[][] soma = new Double[k][4];
         Integer[] qtde = new Integer[k];
+        Double[][] novoAgrup = agrupamento;
+        Double[] classeAgrup = new Double[1000];
+        Double[][] novoCentroid = centroid;
         Arrays.fill(qtde, 0);
-        Arrays.fill(soma, 0.0);
-        int n = 0;
-//        for (int i = 0; i < 12; i++) {
-//            for (int j = 0; j < 5; j++) {
-//                System.out.println(centroid[i][j]);
-//            }            
-//            System.out.println("__________________________");
-//        }
-        while (n < k) {
-            for (int i = 0; i < 1000; i++) {
-                if ((double) (n+1) == agrupamento[i][4]) {
-                    qtde[n]++;
-                }
-            }
-            n++;
+        for (int i = 0; i < k; i++) {
+            Arrays.fill(soma[i], 0.0);
+        }
+        for (int i = 0; i < k; i++) {
+            Arrays.fill(pos[i], 0);
         }
         for (int i = 0; i < 1000; i++) {
-            for (int j = 0; j < 999; j++) {
-                if (agrupamento[i][4] < agrupamento[j][4]) {
-                    aux = agrupamento[i];
-                    agrupamento[i] = agrupamento[j];
-                    agrupamento[j] = aux;
-                }
-            }
+            classeAgrup[i] = novoAgrup[i][4];
         }
-        for (int i = 0, m = 0; i < k; i++) {
-            for (int j = 0; j < qtde[i]; j++, m++) {
-                for (int l = 0; l < 4; l++) {
-                    soma[l] += agrupamento[m][l];
+        int n = 0, m = 0;
+        for (int i = 0, p = 0; i < 1000; i++) {
+            while ((double) (n+1) != classeAgrup[i]) {
+                n++;
+            }                
+            pos[n][qtde[n]] = i;
+            qtde[n]++;
+            n = 0;
+        }
+        
+        while (n < k) {
+            for (int i = 0; i < 1000; i++) {
+                if (pos[n][m] == i) {
+                    for (int j = 0; j < 4; j++) {
+                        soma[n][j] += agrupamento[i][j];
+                    }
+                    m++;
                 }
-            }
-            for (int j = 1, o = 0; j < 5; j++, o++) {  
-                centroid[i][j] = soma[o]/qtde[i];
+            }                                    
+
+            n++;
+            m = 0;
+        }
+        for (int i = 0; i < k; i++) {
+            for (int j = 1; j < 5; j++) {
+                novoCentroid[i][j] = soma[i][j-1]/qtde[i];
             }
         }
 //        for (int i = 0; i < 12; i++) {
@@ -169,7 +174,7 @@ public class KMeans {
 //            }
 //            System.out.println("__________________________");
 //        }
-        return centroid;
+        return novoCentroid;
     }
     public static String menorArray(Double[] array) {
         Double menor = array[0];
@@ -182,16 +187,6 @@ public class KMeans {
         }
         return indMenor;
     }
-//    public static double distanciasMedias(Double[][] agrupamento) {
-//        double soma = 0;
-//        double media;
-//        for (int i = 0; i < 1000; i++) {
-//            for(int j = 0; j < 4; j++) {
-//                soma += agrupamento[i]
-//            }
-//        }
-//        return media;
-//    }
 }
     
 
